@@ -8,42 +8,46 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 16px; }
-    .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .counter { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 16px; text-align: center; }
-    .counter-n { font-size: 28px; font-weight: 600; }
-    .counter-l { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 20px; }
+    h1 { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 16px; text-align: center; letter-spacing: -0.3px; }
+    .counters { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; }
+    .counter { width: 110px; height: 110px; border-radius: 50%; background: white; border: 2px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .counter-n { font-size: 30px; font-weight: 700; color: #111; line-height: 1; }
+    .counter-l { font-size: 11px; color: #111; margin-top: 4px; text-align: center; line-height: 1.3; max-width: 80px; }
     .add-row { display: flex; gap: 8px; margin-bottom: 6px; }
-    .add-row input { flex: 1; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
-    .add-row input:focus { border-color: #378ADD; }
-    .add-row button { padding: 9px 16px; background: #378ADD; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
-    .add-row button:hover { background: #185FA5; }
-    .map-wrap { background: #dbeafe; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 10px; }
+    .add-row input { flex: 1; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 50px; font-size: 14px; outline: none; color: #111; }
+    .add-row input:focus { border-color: #a78bfa; }
+    .add-row input::placeholder { color: #9ca3af; }
+    .add-row button { padding: 10px 20px; background: #111; color: white; border: none; border-radius: 50px; font-size: 14px; cursor: pointer; }
+    .add-row button:hover { background: #333; }
+    .map-wrap { background: #e0f2fe; border-radius: 16px; overflow: hidden; position: relative; margin-bottom: 12px; }
     svg { display: block; width: 100%; }
-    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .tag { display: flex; align-items: center; gap: 5px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #374151; }
-    .tag button { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .tag { display: flex; align-items: center; gap: 5px; background: white; border: 1.5px solid #e5e7eb; border-radius: 50px; padding: 5px 12px; font-size: 12px; color: #111; }
+    .tag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .tag button { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 15px; line-height: 1; padding: 0; margin-left: 2px; }
     .tag button:hover { color: #ef4444; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; }
-    .err { font-size: 12px; color: #ef4444; min-height: 18px; margin-bottom: 6px; }
-    #tip { display:none; position:absolute; background:white; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; font-size:13px; pointer-events:none; z-index:20; }
+    .err { font-size: 12px; color: #ef4444; min-height: 18px; margin-bottom: 4px; padding-left: 4px; }
+    #tip { display:none; position:absolute; background:white; border:1px solid #e5e7eb; border-radius:10px; padding:7px 12px; font-size:13px; font-weight:500; color:#111; pointer-events:none; z-index:20; }
   </style>
 </head>
 <body>
 
+<h1>🌍 Mes voyages</h1>
+
 <div class="counters">
   <div class="counter">
-    <div class="counter-n" style="color:#378ADD">195</div>
+    <div class="counter-n">195</div>
     <div class="counter-l">Pays dans le monde</div>
   </div>
   <div class="counter">
-    <div class="counter-n" id="c-visited" style="color:#1D9E75">0</div>
+    <div class="counter-n" id="c-visited">0</div>
     <div class="counter-l">Pays visités</div>
   </div>
 </div>
 
 <div class="add-row">
-  <input type="text" id="inp" placeholder="Ex: Thaïlande, Japon, Brésil..." />
+  <input type="text" id="inp" placeholder="Ajoute un pays visité..." />
   <button onclick="addCountry()">+ Ajouter</button>
 </div>
 <div class="err" id="err"></div>
@@ -55,96 +59,145 @@
 <div class="tags" id="tags"></div>
 
 <script>
+const PALETTE = [
+  "#f87171","#fb923c","#fbbf24","#a3e635","#34d399",
+  "#22d3ee","#60a5fa","#a78bfa","#f472b6","#f97316",
+  "#10b981","#3b82f6","#8b5cf6","#ec4899","#14b8a6"
+];
+
 const ISO = {
-  "france":"250","italie":"380","italy":"380","espagne":"724","spain":"724","portugal":"620",
-  "grèce":"300","greece":"300","allemagne":"276","germany":"276","royaume-uni":"826","uk":"826",
-  "angleterre":"826","pays-bas":"528","netherlands":"528","belgique":"056","belgium":"056",
-  "suisse":"756","switzerland":"756","autriche":"040","austria":"040","suède":"752","sweden":"752",
-  "norvège":"578","norway":"578","danemark":"208","denmark":"208","finlande":"246","finland":"246",
-  "islande":"352","iceland":"352","pologne":"616","poland":"616","croatie":"191","croatia":"191",
-  "roumanie":"642","romania":"642","hongrie":"348","hungary":"348","ukraine":"804",
-  "russie":"643","russia":"643","turquie":"792","turkey":"792",
-  "thaïlande":"764","thailande":"764","thailand":"764","japon":"392","japan":"392",
-  "chine":"156","china":"156","inde":"356","india":"356","vietnam":"704",
+  // Europe
+  "france":"250","italie":"380","italy":"380","espagne":"724","spain":"724",
+  "portugal":"620","grèce":"300","greece":"300","allemagne":"276","germany":"276",
+  "royaume-uni":"826","uk":"826","angleterre":"826","grande-bretagne":"826",
+  "pays-bas":"528","netherlands":"528","hollande":"528",
+  "belgique":"056","belgium":"056","suisse":"756","switzerland":"756",
+  "autriche":"040","austria":"040","suède":"752","sweden":"752",
+  "norvège":"578","norway":"578","danemark":"208","denmark":"208",
+  "finlande":"246","finland":"246","islande":"352","iceland":"352",
+  "pologne":"616","poland":"616","croatie":"191","croatia":"191",
+  "roumanie":"642","romania":"642","hongrie":"348","hungary":"348",
+  "ukraine":"804","russie":"643","russia":"643","turquie":"792","turkey":"792",
+  "albanie":"008","albania":"008",
+  "serbie":"688","serbia":"688","bosnie":"070","bosnia":"070",
+  "monténégro":"499","montenegro":"499","macédoine":"807","macedonia":"807",
+  "slovaquie":"703","slovakia":"703","slovénie":"705","slovenia":"705",
+  "tchéquie":"203","czech republic":"203","république tchèque":"203",
+  "bulgarie":"100","bulgaria":"100","lituanie":"440","lithuania":"440",
+  "lettonie":"428","latvia":"428","estonie":"233","estonia":"233",
+  "irlande":"372","ireland":"372","luxembourg":"442","luxembourg":"442",
+  "malte":"470","malta":"470","chypre":"196","cyprus":"196",
+  "moldova":"498","biélorussie":"112","belarus":"112",
+  "géorgie":"268","georgia":"268","arménie":"051","armenia":"051",
+  "azerbaïdjan":"031","azerbaijan":"031",
+
+  // Asie
+  "thaïlande":"764","thailande":"764","thailand":"764",
+  "japon":"392","japan":"392","chine":"156","china":"156",
+  "inde":"356","india":"356","vietnam":"704",
   "cambodge":"116","cambodia":"116","indonésie":"360","indonesia":"360",
   "malaisie":"458","malaysia":"458","singapour":"702","singapore":"702",
-  "philippines":"608","corée du sud":"410","south korea":"410","taiwan":"158",
-  "népal":"524","nepal":"524","sri lanka":"144","myanmar":"104","birmanie":"104","laos":"418",
-  "iran":"364","israel":"376","israël":"376","jordanie":"400","jordan":"400",
-  "arabie saoudite":"682","saudi arabia":"682","emirats arabes unis":"784","uae":"784",
+  "philippines":"608","philippines":"608",
+  "corée du sud":"410","south korea":"410","taiwan":"158",
+  "népal":"524","nepal":"524","sri lanka":"144","myanmar":"104","birmanie":"104",
+  "laos":"418","bangladesh":"050","pakistan":"586","afghanistan":"004",
+  "iran":"364","irak":"368","iraq":"368","israel":"376","israël":"376",
+  "jordanie":"400","jordan":"400","liban":"422","lebanon":"422",
+  "syrie":"760","syria":"760","arabie saoudite":"682","saudi arabia":"682",
+  "emirats arabes unis":"784","uae":"784","qatar":"634","koweit":"414","kuwait":"414",
+  "oman":"512","yémen":"887","yemen":"887","kazakhstan":"398","ouzbékistan":"860",
+  "uzbekistan":"860","mongolie":"496","mongolia":"496","corée du nord":"408","north korea":"408",
+
+  // Amériques
   "états-unis":"840","usa":"840","etats-unis":"840","canada":"124",
-  "mexique":"484","mexico":"484","cuba":"192","costa rica":"188","panama":"591",
-  "colombie":"170","colombia":"170","venezuela":"862","brésil":"076","brazil":"076",
-  "pérou":"604","peru":"604","bolivie":"068","bolivia":"068","chili":"152","chile":"152",
-  "argentine":"032","argentina":"032","uruguay":"858","équateur":"218","ecuador":"218",
-  "maroc":"504","morocco":"504","algérie":"012","algeria":"012","tunisie":"788","tunisia":"788",
-  "égypte":"818","egypte":"818","egypt":"818","sénégal":"686","senegal":"686","ghana":"288",
-  "nigeria":"566","kenya":"404","tanzanie":"834","tanzania":"834","ethiopie":"231","ethiopia":"231",
-  "rwanda":"646","madagascar":"450","zimbabwe":"716","namibie":"516","namibia":"516",
-  "afrique du sud":"710","south africa":"710","angola":"024",
+  "mexique":"484","mexico":"484","cuba":"192","jamaïque":"388","jamaica":"388",
+  "haïti":"332","haiti":"332","guatemala":"320","belize":"084",
+  "salvador":"222","honduras":"340","nicaragua":"558",
+  "costa rica":"188","panama":"591","colombie":"170","colombia":"170",
+  "venezuela":"862","brésil":"076","bresil":"076","brazil":"076",
+  "pérou":"604","peru":"604","bolivie":"068","bolivia":"068",
+  "chili":"152","chile":"152","argentine":"032","argentina":"032",
+  "uruguay":"858","paraguay":"600","équateur":"218","ecuador":"218",
+  "guyana":"328","suriname":"740","trinidad":"780",
+
+  // Afrique
+  "maroc":"504","morocco":"504","algérie":"012","algeria":"012",
+  "tunisie":"788","tunisia":"788","libye":"434","libya":"434",
+  "égypte":"818","egypte":"818","egypt":"818","soudan":"729","sudan":"729",
+  "sénégal":"686","senegal":"686","ghana":"288","nigeria":"566",
+  "cameroun":"120","cameroon":"120","kenya":"404","tanzanie":"834","tanzania":"834",
+  "ethiopie":"231","ethiopia":"231","ouganda":"800","uganda":"800",
+  "rwanda":"646","mozambique":"508","madagascar":"450","zimbabwe":"716",
+  "zambie":"894","zambia":"894","namibie":"516","namibia":"516",
+  "botswana":"072","afrique du sud":"710","south africa":"710","angola":"024",
+  "mali":"466","niger":"562","tchad":"148","chad":"148","mauritanie":"478","mauritania":"478",
+  "côte d'ivoire":"384","ivory coast":"384","burkina faso":"854",
+  "togo":"768","bénin":"204","benin":"204","guinée":"324","guinea":"324",
+  "sierra leone":"694","liberia":"430","somalie":"706","somalia":"706",
+  "djibouti":"262","érythrée":"232","eritrea":"232",
+  "congo":"180","rd congo":"180","rdc":"180","tanzanie":"834",
+  "mozambique":"508","malawi":"454","lesotho":"426","swaziland":"748","eswatini":"748",
+  "cap-vert":"132","cape verde":"132","comores":"174","comoros":"174",
+  "seychelles":"690","île maurice":"480","mauritius":"480",
+
+  // Océanie
   "australie":"036","australia":"036","nouvelle-zélande":"554","new zealand":"554",
+  "papouasie":"598","papua new guinea":"598","fidji":"242","fiji":"242",
 };
 
 function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
 function getNum(name){
   const n=norm(name);
-  for(const [k,v] of Object.entries(ISO)){ if(norm(k)===n) return v; }
-  for(const [k,v] of Object.entries(ISO)){ if(n.includes(norm(k))) return v; }
+  for(const[k,v] of Object.entries(ISO)){ if(norm(k)===n) return v; }
+  for(const[k,v] of Object.entries(ISO)){ if(n.includes(norm(k))) return v; }
   return null;
 }
 
-let visited = JSON.parse(localStorage.getItem("visited")||"[]");
-let worldData = null;
+let visited = JSON.parse(localStorage.getItem("travel-visited")||"[]");
 
 const svgEl = document.getElementById("map");
 const tip = document.getElementById("tip");
-const W=900, H=450;
-const d3s = document.createElement("script");
-d3s.src="https://cdn.jsdelivr.net/npm/d3@7";
-d3s.onload = () => {
-  const ts = document.createElement("script");
-  ts.src="https://cdn.jsdelivr.net/npm/topojson-client@3";
-  ts.onload = initMap;
-  document.head.appendChild(ts);
-};
-document.head.appendChild(d3s);
+const svg = d3.select(svgEl).attr("viewBox","0 0 900 450");
+const proj = d3.geoNaturalEarth1().scale(900/6.3).translate([450,225]);
+const path = d3.geoPath().projection(proj);
+let worldData = null;
 
-function initMap(){
-  const svg = d3.select(svgEl).attr("viewBox","0 0 900 450");
-  const proj = d3.geoNaturalEarth1().scale(900/6.3).translate([450,225]);
-  const path = d3.geoPath().projection(proj);
-  d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(world => {
-    worldData = world;
-    window._svg = svg; window._path = path;
-    redraw();
-  });
-}
+d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(w => {
+  worldData = w; redraw();
+});
 
 function redraw(){
-  if(!worldData||!window._svg) return;
+  if(!worldData) return;
   const colorMap = new Map();
-  visited.forEach(v=>{ if(v.num) colorMap.set(v.num,v.name); });
-  const countries = topojson.feature(worldData, worldData.objects.countries);
-  window._svg.selectAll("path.c").remove();
-  window._svg.selectAll("path.c").data(countries.features).join("path").attr("class","c")
-    .attr("d",window._path)
-    .attr("fill",d=>{ const id=String(d.id).padStart(3,"0"); return colorMap.has(id)?"#1D9E75":"#cbd5e1"; })
-    .attr("stroke","#fff").attr("stroke-width",0.4)
-    .on("mouseover",function(e,d){
-      const id=String(d.id).padStart(3,"0"); const name=colorMap.get(id); if(!name)return;
-      tip.style.display="block"; tip.innerHTML=`<strong>${name}</strong>`;
-      d3.select(this).attr("opacity",.75);
-    })
-    .on("mousemove",e=>{ tip.style.left=(e.offsetX+12)+"px"; tip.style.top=(e.offsetY-30)+"px"; })
-    .on("mouseout",function(){ tip.style.display="none"; d3.select(this).attr("opacity",1); });
-  document.getElementById("c-visited").textContent = visited.length;
-  localStorage.setItem("visited", JSON.stringify(visited));
-  renderTags();
-}
+  visited.forEach((v,i) => { if(v.num) colorMap.set(v.num, { color: PALETTE[i % PALETTE.length], name: v.name }); });
 
-function renderTags(){
-  document.getElementById("tags").innerHTML = visited.map((v,i)=>`
-    <div class="tag"><div class="dot"></div>${v.name}<button onclick="remove(${i})">×</button></div>`).join("");
+  const countries = topojson.feature(worldData, worldData.objects.countries);
+  svg.selectAll("path.c").remove();
+  svg.selectAll("path.c").data(countries.features).join("path").attr("class","c")
+    .attr("d", path)
+    .attr("fill", d => {
+      const id = String(d.id).padStart(3,"0");
+      return colorMap.has(id) ? colorMap.get(id).color : "#cbd5e1";
+    })
+    .attr("stroke","#fff").attr("stroke-width", 0.5)
+    .on("mouseover", function(e,d){
+      const id=String(d.id).padStart(3,"0");
+      const info=colorMap.get(id); if(!info) return;
+      tip.style.display="block"; tip.innerHTML=info.name;
+      d3.select(this).attr("opacity",.8);
+    })
+    .on("mousemove", e => { tip.style.left=(e.offsetX+12)+"px"; tip.style.top=(e.offsetY-30)+"px"; })
+    .on("mouseout", function(){ tip.style.display="none"; d3.select(this).attr("opacity",1); });
+
+  document.getElementById("c-visited").textContent = visited.length;
+  localStorage.setItem("travel-visited", JSON.stringify(visited));
+
+  document.getElementById("tags").innerHTML = visited.map((v,i) => `
+    <div class="tag">
+      <div class="tag-dot" style="background:${PALETTE[i % PALETTE.length]}"></div>
+      ${v.name}
+      <button onclick="remove(${i})">×</button>
+    </div>`).join("");
 }
 
 function addCountry(){
@@ -158,7 +211,7 @@ function addCountry(){
 }
 
 function remove(i){ visited.splice(i,1); redraw(); }
-document.getElementById("inp").addEventListener("keydown",e=>{ if(e.key==="Enter") addCountry(); });
+document.getElementById("inp").addEventListener("keydown", e=>{ if(e.key==="Enter") addCountry(); });
 </script>
 </body>
 </html>
