@@ -8,130 +8,157 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 20px; }
-    h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #111; }
-    .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .stat { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 16px; min-width: 90px; }
-    .stat-n { font-size: 22px; font-weight: 600; }
-    .stat-l { font-size: 12px; color: #6b7280; }
-    #map-wrap { background: #dbeafe; border-radius: 12px; overflow: hidden; position: relative; }
+    body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 16px; }
+    .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .counter { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 16px; text-align: center; }
+    .counter-n { font-size: 28px; font-weight: 600; }
+    .counter-l { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .add-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .add-row input { flex: 1; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
+    .add-row input:focus { border-color: #378ADD; }
+    .add-row button { padding: 9px 16px; background: #378ADD; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .add-row button:hover { background: #185FA5; }
+    .map-wrap { background: #dbeafe; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 10px; }
     svg { display: block; width: 100%; }
-    .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
-    .legend span { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #6b7280; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .list { background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; margin-top: 14px; }
-    .item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-    .item:last-child { border-bottom: none; }
-    .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-left: auto; }
-    #tip { display:none; position:absolute; background:white; border:1px solid #e5e7eb; border-radius:8px; padding:7px 11px; font-size:13px; pointer-events:none; z-index:20; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag { display: flex; align-items: center; gap: 5px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #374151; }
+    .tag button { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; }
+    .tag button:hover { color: #ef4444; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; }
+    .err { font-size: 12px; color: #ef4444; min-height: 18px; margin-bottom: 6px; }
+    #tip { display:none; position:absolute; background:white; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; font-size:13px; pointer-events:none; z-index:20; }
   </style>
 </head>
 <body>
 
-<h1>🌍 Mes voyages</h1>
-
-<script>
-// ══════════════════════════════════════
-//  👉 MODIFIE UNIQUEMENT CE TABLEAU
-//  Statuts possibles : "planifié" / "en cours" / "terminé"
-// ══════════════════════════════════════
-const VOYAGES = [
-  { pays: "Thaïlande",  statut: "planifié" },
-  { pays: "Japon",      statut: "planifié" },
-  { pays: "Portugal",   statut: "terminé"  },
-  { pays: "Vietnam",    statut: "en cours" },
-];
-// ══════════════════════════════════════
-</script>
-
-<div class="stats">
-  <div class="stat"><div class="stat-n" id="s1" style="color:#378ADD">-</div><div class="stat-l">Planifiés</div></div>
-  <div class="stat"><div class="stat-n" id="s2" style="color:#1D9E75">-</div><div class="stat-l">En cours</div></div>
-  <div class="stat"><div class="stat-n" id="s3" style="color:#888780">-</div><div class="stat-l">Terminés</div></div>
+<div class="counters">
+  <div class="counter">
+    <div class="counter-n" style="color:#378ADD">195</div>
+    <div class="counter-l">Pays dans le monde</div>
+  </div>
+  <div class="counter">
+    <div class="counter-n" id="c-visited" style="color:#1D9E75">0</div>
+    <div class="counter-l">Pays visités</div>
+  </div>
 </div>
 
-<div id="map-wrap">
+<div class="add-row">
+  <input type="text" id="inp" placeholder="Ex: Thaïlande, Japon, Brésil..." />
+  <button onclick="addCountry()">+ Ajouter</button>
+</div>
+<div class="err" id="err"></div>
+
+<div class="map-wrap">
   <svg id="map"></svg>
   <div id="tip"></div>
 </div>
-<div class="legend">
-  <span><i class="dot" style="background:#378ADD"></i>Planifié</span>
-  <span><i class="dot" style="background:#1D9E75"></i>En cours</span>
-  <span><i class="dot" style="background:#888780"></i>Terminé</span>
-</div>
-<div class="list" id="list"></div>
+<div class="tags" id="tags"></div>
 
 <script>
 const ISO = {
   "france":"250","italie":"380","italy":"380","espagne":"724","spain":"724","portugal":"620",
   "grèce":"300","greece":"300","allemagne":"276","germany":"276","royaume-uni":"826","uk":"826",
-  "pays-bas":"528","netherlands":"528","belgique":"056","belgium":"056","suisse":"756",
-  "switzerland":"756","autriche":"040","austria":"040","suède":"752","sweden":"752",
+  "angleterre":"826","pays-bas":"528","netherlands":"528","belgique":"056","belgium":"056",
+  "suisse":"756","switzerland":"756","autriche":"040","austria":"040","suède":"752","sweden":"752",
   "norvège":"578","norway":"578","danemark":"208","denmark":"208","finlande":"246","finland":"246",
   "islande":"352","iceland":"352","pologne":"616","poland":"616","croatie":"191","croatia":"191",
+  "roumanie":"642","romania":"642","hongrie":"348","hungary":"348","ukraine":"804",
+  "russie":"643","russia":"643","turquie":"792","turkey":"792",
   "thaïlande":"764","thailande":"764","thailand":"764","japon":"392","japan":"392",
   "chine":"156","china":"156","inde":"356","india":"356","vietnam":"704",
   "cambodge":"116","cambodia":"116","indonésie":"360","indonesia":"360",
-  "malaisie":"458","malaysia":"458","singapour":"702","singapore":"702","philippines":"608",
-  "corée du sud":"410","south korea":"410","taiwan":"158","népal":"524","nepal":"524",
-  "turquie":"792","turkey":"792","états-unis":"840","usa":"840","canada":"124",
-  "mexique":"484","mexico":"484","brésil":"076","brazil":"076","argentine":"032","argentina":"032",
-  "colombie":"170","colombia":"170","pérou":"604","peru":"604","chili":"152","chile":"152",
-  "maroc":"504","morocco":"504","égypte":"818","egypt":"818","kenya":"404",
-  "tanzanie":"834","tanzania":"834","afrique du sud":"710","south africa":"710",
+  "malaisie":"458","malaysia":"458","singapour":"702","singapore":"702",
+  "philippines":"608","corée du sud":"410","south korea":"410","taiwan":"158",
+  "népal":"524","nepal":"524","sri lanka":"144","myanmar":"104","birmanie":"104","laos":"418",
+  "iran":"364","israel":"376","israël":"376","jordanie":"400","jordan":"400",
+  "arabie saoudite":"682","saudi arabia":"682","emirats arabes unis":"784","uae":"784",
+  "états-unis":"840","usa":"840","etats-unis":"840","canada":"124",
+  "mexique":"484","mexico":"484","cuba":"192","costa rica":"188","panama":"591",
+  "colombie":"170","colombia":"170","venezuela":"862","brésil":"076","brazil":"076",
+  "pérou":"604","peru":"604","bolivie":"068","bolivia":"068","chili":"152","chile":"152",
+  "argentine":"032","argentina":"032","uruguay":"858","équateur":"218","ecuador":"218",
+  "maroc":"504","morocco":"504","algérie":"012","algeria":"012","tunisie":"788","tunisia":"788",
+  "égypte":"818","egypte":"818","egypt":"818","sénégal":"686","senegal":"686","ghana":"288",
+  "nigeria":"566","kenya":"404","tanzanie":"834","tanzania":"834","ethiopie":"231","ethiopia":"231",
+  "rwanda":"646","madagascar":"450","zimbabwe":"716","namibie":"516","namibia":"516",
+  "afrique du sud":"710","south africa":"710","angola":"024",
   "australie":"036","australia":"036","nouvelle-zélande":"554","new zealand":"554",
 };
-const COLORS = { "planifié":"#378ADD","en cours":"#1D9E75","terminé":"#888780" };
-const BG     = { "planifié":"#eff6ff","en cours":"#f0fdf4","terminé":"#f9fafb" };
 
 function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
 function getNum(name){
-  const n = norm(name);
+  const n=norm(name);
   for(const [k,v] of Object.entries(ISO)){ if(norm(k)===n) return v; }
   for(const [k,v] of Object.entries(ISO)){ if(n.includes(norm(k))) return v; }
   return null;
 }
 
-document.getElementById("s1").textContent = VOYAGES.filter(v=>norm(v.statut)==="planifié").length;
-document.getElementById("s2").textContent = VOYAGES.filter(v=>norm(v.statut)==="en cours").length;
-document.getElementById("s3").textContent = VOYAGES.filter(v=>norm(v.statut)==="terminé").length;
-
-const listEl = document.getElementById("list");
-VOYAGES.forEach(v=>{
-  const s = norm(v.statut), c = COLORS[s]??"#888780", b = BG[s]??"#f9fafb";
-  listEl.innerHTML += `<div class="item">
-    <span class="dot" style="background:${c}"></span>
-    ${v.pays}
-    <span class="badge" style="background:${b};color:${c}">${v.statut}</span>
-  </div>`;
-});
-
-const colorMap = new Map();
-VOYAGES.forEach(v=>{ const num=getNum(v.pays); if(num) colorMap.set(num,{color:COLORS[norm(v.statut)]??"#888780",name:v.pays,statut:v.statut}); });
+let visited = JSON.parse(localStorage.getItem("visited")||"[]");
+let worldData = null;
 
 const svgEl = document.getElementById("map");
 const tip = document.getElementById("tip");
 const W=900, H=450;
-const svg = d3.select(svgEl).attr("viewBox",`0 0 ${W} ${H}`);
-const proj = d3.geoNaturalEarth1().scale(W/6.3).translate([W/2,H/2]);
-const path = d3.geoPath().projection(proj);
+const d3s = document.createElement("script");
+d3s.src="https://cdn.jsdelivr.net/npm/d3@7";
+d3s.onload = () => {
+  const ts = document.createElement("script");
+  ts.src="https://cdn.jsdelivr.net/npm/topojson-client@3";
+  ts.onload = initMap;
+  document.head.appendChild(ts);
+};
+document.head.appendChild(d3s);
 
-d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(world=>{
-  const countries = topojson.feature(world, world.objects.countries);
-  svg.selectAll("path").data(countries.features).join("path")
-    .attr("d",path)
-    .attr("fill",d=>{ const id=String(d.id).padStart(3,"0"); return colorMap.has(id)?colorMap.get(id).color:"#cbd5e1"; })
+function initMap(){
+  const svg = d3.select(svgEl).attr("viewBox","0 0 900 450");
+  const proj = d3.geoNaturalEarth1().scale(900/6.3).translate([450,225]);
+  const path = d3.geoPath().projection(proj);
+  d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(world => {
+    worldData = world;
+    window._svg = svg; window._path = path;
+    redraw();
+  });
+}
+
+function redraw(){
+  if(!worldData||!window._svg) return;
+  const colorMap = new Map();
+  visited.forEach(v=>{ if(v.num) colorMap.set(v.num,v.name); });
+  const countries = topojson.feature(worldData, worldData.objects.countries);
+  window._svg.selectAll("path.c").remove();
+  window._svg.selectAll("path.c").data(countries.features).join("path").attr("class","c")
+    .attr("d",window._path)
+    .attr("fill",d=>{ const id=String(d.id).padStart(3,"0"); return colorMap.has(id)?"#1D9E75":"#cbd5e1"; })
     .attr("stroke","#fff").attr("stroke-width",0.4)
     .on("mouseover",function(e,d){
-      const info=colorMap.get(String(d.id).padStart(3,"0"));
-      if(!info)return;
-      tip.style.display="block";
-      tip.innerHTML=`<strong>${info.name}</strong><br><small style="color:#6b7280">${info.statut}</small>`;
+      const id=String(d.id).padStart(3,"0"); const name=colorMap.get(id); if(!name)return;
+      tip.style.display="block"; tip.innerHTML=`<strong>${name}</strong>`;
       d3.select(this).attr("opacity",.75);
     })
-    .on("mousemove",e=>{ tip.style.left=(e.offsetX+12)+"px"; tip.style.top=(e.offsetY-36)+"px"; })
+    .on("mousemove",e=>{ tip.style.left=(e.offsetX+12)+"px"; tip.style.top=(e.offsetY-30)+"px"; })
     .on("mouseout",function(){ tip.style.display="none"; d3.select(this).attr("opacity",1); });
-});
+  document.getElementById("c-visited").textContent = visited.length;
+  localStorage.setItem("visited", JSON.stringify(visited));
+  renderTags();
+}
+
+function renderTags(){
+  document.getElementById("tags").innerHTML = visited.map((v,i)=>`
+    <div class="tag"><div class="dot"></div>${v.name}<button onclick="remove(${i})">×</button></div>`).join("");
+}
+
+function addCountry(){
+  const inp=document.getElementById("inp"), err=document.getElementById("err");
+  const val=inp.value.trim();
+  if(!val){ err.textContent="Saisis un pays."; return; }
+  if(visited.find(v=>norm(v.name)===norm(val))){ err.textContent="Déjà ajouté !"; inp.value=""; return; }
+  const num=getNum(val);
+  if(!num){ err.textContent=`"${val}" non reconnu — essaie en anglais.`; return; }
+  err.textContent=""; visited.push({name:val,num}); inp.value=""; redraw();
+}
+
+function remove(i){ visited.splice(i,1); redraw(); }
+document.getElementById("inp").addEventListener("keydown",e=>{ if(e.key==="Enter") addCountry(); });
 </script>
 </body>
 </html>
