@@ -8,19 +8,18 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f8fafc; padding: 20px; }
-    h1 { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 16px; text-align: center; letter-spacing: -0.3px; }
-    .counters { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; }
+    body { font-family: system-ui, sans-serif; background: transparent; padding: 16px; }
+    .counters { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; }
     .counter { width: 110px; height: 110px; border-radius: 50%; background: white; border: 2px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .counter-n { font-size: 30px; font-weight: 700; color: #111; line-height: 1; }
     .counter-l { font-size: 11px; color: #111; margin-top: 4px; text-align: center; line-height: 1.3; max-width: 80px; }
     .add-row { display: flex; gap: 8px; margin-bottom: 6px; }
-    .add-row input { flex: 1; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 50px; font-size: 14px; outline: none; color: #111; }
+    .add-row input { flex: 1; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 50px; font-size: 14px; outline: none; color: #111; background: white; }
     .add-row input:focus { border-color: #a78bfa; }
     .add-row input::placeholder { color: #9ca3af; }
     .add-row button { padding: 10px 20px; background: #111; color: white; border: none; border-radius: 50px; font-size: 14px; cursor: pointer; }
     .add-row button:hover { background: #333; }
-    .map-wrap { background: #e0f2fe; border-radius: 16px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    .map-wrap { border-radius: 16px; overflow: hidden; position: relative; margin-bottom: 12px; }
     svg { display: block; width: 100%; }
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
     .tag { display: flex; align-items: center; gap: 5px; background: white; border: 1.5px solid #e5e7eb; border-radius: 50px; padding: 5px 12px; font-size: 12px; color: #111; }
@@ -32,8 +31,6 @@
   </style>
 </head>
 <body>
-
-<h1>🌍 Mes voyages</h1>
 
 <div class="counters">
   <div class="counter">
@@ -66,7 +63,6 @@ const PALETTE = [
 ];
 
 const ISO = {
-  // Europe
   "france":"250","italie":"380","italy":"380","espagne":"724","spain":"724",
   "portugal":"620","grèce":"300","greece":"300","allemagne":"276","germany":"276",
   "royaume-uni":"826","uk":"826","angleterre":"826","grande-bretagne":"826",
@@ -82,67 +78,46 @@ const ISO = {
   "serbie":"688","serbia":"688","bosnie":"070","bosnia":"070",
   "monténégro":"499","montenegro":"499","macédoine":"807","macedonia":"807",
   "slovaquie":"703","slovakia":"703","slovénie":"705","slovenia":"705",
-  "tchéquie":"203","czech republic":"203","république tchèque":"203",
+  "tchéquie":"203","czech republic":"203","republique tcheque":"203",
   "bulgarie":"100","bulgaria":"100","lituanie":"440","lithuania":"440",
   "lettonie":"428","latvia":"428","estonie":"233","estonia":"233",
-  "irlande":"372","ireland":"372","luxembourg":"442","luxembourg":"442",
+  "irlande":"372","ireland":"372","luxembourg":"442",
   "malte":"470","malta":"470","chypre":"196","cyprus":"196",
-  "moldova":"498","biélorussie":"112","belarus":"112",
-  "géorgie":"268","georgia":"268","arménie":"051","armenia":"051",
-  "azerbaïdjan":"031","azerbaijan":"031",
-
-  // Asie
-  "thaïlande":"764","thailande":"764","thailand":"764",
+  "moldova":"498","bielorussie":"112","belarus":"112",
+  "georgie":"268","georgia":"268","armenie":"051","armenia":"051",
+  "azerbaidjan":"031","azerbaijan":"031",
+  "thailande":"764","thailand":"764",
   "japon":"392","japan":"392","chine":"156","china":"156",
   "inde":"356","india":"356","vietnam":"704",
-  "cambodge":"116","cambodia":"116","indonésie":"360","indonesia":"360",
+  "cambodge":"116","cambodia":"116","indonesie":"360","indonesia":"360",
   "malaisie":"458","malaysia":"458","singapour":"702","singapore":"702",
-  "philippines":"608","philippines":"608",
-  "corée du sud":"410","south korea":"410","taiwan":"158",
-  "népal":"524","nepal":"524","sri lanka":"144","myanmar":"104","birmanie":"104",
-  "laos":"418","bangladesh":"050","pakistan":"586","afghanistan":"004",
-  "iran":"364","irak":"368","iraq":"368","israel":"376","israël":"376",
-  "jordanie":"400","jordan":"400","liban":"422","lebanon":"422",
-  "syrie":"760","syria":"760","arabie saoudite":"682","saudi arabia":"682",
-  "emirats arabes unis":"784","uae":"784","qatar":"634","koweit":"414","kuwait":"414",
-  "oman":"512","yémen":"887","yemen":"887","kazakhstan":"398","ouzbékistan":"860",
-  "uzbekistan":"860","mongolie":"496","mongolia":"496","corée du nord":"408","north korea":"408",
-
-  // Amériques
-  "états-unis":"840","usa":"840","etats-unis":"840","canada":"124",
-  "mexique":"484","mexico":"484","cuba":"192","jamaïque":"388","jamaica":"388",
-  "haïti":"332","haiti":"332","guatemala":"320","belize":"084",
-  "salvador":"222","honduras":"340","nicaragua":"558",
-  "costa rica":"188","panama":"591","colombie":"170","colombia":"170",
-  "venezuela":"862","brésil":"076","bresil":"076","brazil":"076",
-  "pérou":"604","peru":"604","bolivie":"068","bolivia":"068",
+  "philippines":"608","coree du sud":"410","south korea":"410","taiwan":"158",
+  "nepal":"524","sri lanka":"144","myanmar":"104","birmanie":"104",
+  "laos":"418","bangladesh":"050","pakistan":"586",
+  "iran":"364","israel":"376","jordanie":"400","jordan":"400",
+  "arabie saoudite":"682","saudi arabia":"682","emirats arabes unis":"784","uae":"784",
+  "qatar":"634","oman":"512","kazakhstan":"398","mongolie":"496","mongolia":"496",
+  "etats-unis":"840","usa":"840","canada":"124",
+  "mexique":"484","mexico":"484","cuba":"192","jamaique":"388","jamaica":"388",
+  "guatemala":"320","costa rica":"188","panama":"591",
+  "colombie":"170","colombia":"170","venezuela":"862",
+  "bresil":"076","brazil":"076",
+  "perou":"604","peru":"604","bolivie":"068","bolivia":"068",
   "chili":"152","chile":"152","argentine":"032","argentina":"032",
-  "uruguay":"858","paraguay":"600","équateur":"218","ecuador":"218",
-  "guyana":"328","suriname":"740","trinidad":"780",
-
-  // Afrique
-  "maroc":"504","morocco":"504","algérie":"012","algeria":"012",
+  "uruguay":"858","paraguay":"600","equateur":"218","ecuador":"218",
+  "maroc":"504","morocco":"504","algerie":"012","algeria":"012",
   "tunisie":"788","tunisia":"788","libye":"434","libya":"434",
-  "égypte":"818","egypte":"818","egypt":"818","soudan":"729","sudan":"729",
-  "sénégal":"686","senegal":"686","ghana":"288","nigeria":"566",
+  "egypte":"818","egypt":"818",
+  "senegal":"686","ghana":"288","nigeria":"566",
   "cameroun":"120","cameroon":"120","kenya":"404","tanzanie":"834","tanzania":"834",
   "ethiopie":"231","ethiopia":"231","ouganda":"800","uganda":"800",
   "rwanda":"646","mozambique":"508","madagascar":"450","zimbabwe":"716",
-  "zambie":"894","zambia":"894","namibie":"516","namibia":"516",
-  "botswana":"072","afrique du sud":"710","south africa":"710","angola":"024",
-  "mali":"466","niger":"562","tchad":"148","chad":"148","mauritanie":"478","mauritania":"478",
-  "côte d'ivoire":"384","ivory coast":"384","burkina faso":"854",
-  "togo":"768","bénin":"204","benin":"204","guinée":"324","guinea":"324",
-  "sierra leone":"694","liberia":"430","somalie":"706","somalia":"706",
-  "djibouti":"262","érythrée":"232","eritrea":"232",
-  "congo":"180","rd congo":"180","rdc":"180","tanzanie":"834",
-  "mozambique":"508","malawi":"454","lesotho":"426","swaziland":"748","eswatini":"748",
-  "cap-vert":"132","cape verde":"132","comores":"174","comoros":"174",
-  "seychelles":"690","île maurice":"480","mauritius":"480",
-
-  // Océanie
-  "australie":"036","australia":"036","nouvelle-zélande":"554","new zealand":"554",
-  "papouasie":"598","papua new guinea":"598","fidji":"242","fiji":"242",
+  "namibie":"516","namibia":"516","botswana":"072",
+  "afrique du sud":"710","south africa":"710","angola":"024",
+  "mali":"466","niger":"562","tchad":"148","chad":"148",
+  "cote d'ivoire":"384","ivory coast":"384","burkina faso":"854",
+  "australie":"036","australia":"036","nouvelle-zelande":"554","new zealand":"554",
+  "fidji":"242","fiji":"242",
 };
 
 function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
@@ -177,7 +152,7 @@ function redraw(){
     .attr("d", path)
     .attr("fill", d => {
       const id = String(d.id).padStart(3,"0");
-      return colorMap.has(id) ? colorMap.get(id).color : "#cbd5e1";
+      return colorMap.has(id) ? colorMap.get(id).color : "#e2e8f0";
     })
     .attr("stroke","#fff").attr("stroke-width", 0.5)
     .on("mouseover", function(e,d){
@@ -196,7 +171,7 @@ function redraw(){
     <div class="tag">
       <div class="tag-dot" style="background:${PALETTE[i % PALETTE.length]}"></div>
       ${v.name}
-      <button onclick="remove(${i})">×</button>
+      <button onclick="remove(${i})">x</button>
     </div>`).join("");
 }
 
@@ -204,9 +179,9 @@ function addCountry(){
   const inp=document.getElementById("inp"), err=document.getElementById("err");
   const val=inp.value.trim();
   if(!val){ err.textContent="Saisis un pays."; return; }
-  if(visited.find(v=>norm(v.name)===norm(val))){ err.textContent="Déjà ajouté !"; inp.value=""; return; }
+  if(visited.find(v=>norm(v.name)===norm(val))){ err.textContent="Deja ajoute !"; inp.value=""; return; }
   const num=getNum(val);
-  if(!num){ err.textContent=`"${val}" non reconnu — essaie en anglais.`; return; }
+  if(!num){ err.textContent='"'+val+'" non reconnu - essaie en anglais.'; return; }
   err.textContent=""; visited.push({name:val,num}); inp.value=""; redraw();
 }
 
